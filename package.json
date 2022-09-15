@@ -1,0 +1,22 @@
+{
+  "name": "wot-api",
+  "version": "1.0.0",
+  "description": "A Node.js wrapper for the World Of Tank API with no dependencies.  For more information, visit: https://developers.wargaming.net/.  This wrapper is not affiliated with Wargaming.net.",
+  "main": "wot-api.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FoobarIT/wot-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FoobarIT/wot-api/issues"
+  },
+  "homepage": "https://github.com/FoobarIT/wot-api#readme"
+}

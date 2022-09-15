@@ -4,8 +4,9 @@
  * @description A Node.js wrapper for the World Of Tank API with no dependencies. 
  *              For more information, visit: https://developers.wargaming.net/. 
  *              This wrapper is not affiliated with Wargaming.net.
+ *              #cfaitalarache
  * @public
- * @version 1.0.10
+ * @version 1.0.0
  * @license MIT
  * @kind class
  */
@@ -17,31 +18,19 @@ class WotApi {
     /**
      * @constructor
      * @param {string} applicationId - Your application ID.
-     * @param {string} [language=en] - The language to use for the API.
      * @param {string} [region=na] - The region to use for the API.
      * @param {string} [apiPath=/wot] - The path to the API.
      * @param {boolean} [debug=false] - Whether or not to log debug messages.
      * @public
      * @returns {WotApi}
      */
-    constructor(applicationId, region = 'na', apiPath = '/wot', debug = false) {
-        this.applicationId = applicationId;
-        this.region = region;
-        this.apiPath = apiPath;
-        this.debug = debug;
+    constructor(options) {
+        this.applicationId = options.applicationId;
+        this.region = options.region;
+        this.apiPath = options.apiPath;
+        this.debug = options.debug;
     }
 
-    ping() {
-        return new Promise((resolve, reject) => {
-            this._request('ping', {}, (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
-    }
 
     #getAccountID(accountName) {
         return new Promise((resolve, reject) => {
@@ -74,14 +63,71 @@ class WotApi {
     
     get account() {
         return {
-            byName: (accountName) => {
+            stats: (account) => {
+                if (typeof account === 'string') {
+                    return new Promise((resolve, reject) => {
+                        this.#getAccountID(account).then((data) => {
+                            console.log(data)
+                            if (data.meta.count === 0) {
+                                reject('Account not found');
+                                return;
+                            }
+                            this._request('account/info', {
+                                account_id: data.data[0].account_id
+                            }, (err, data) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(data.data[Object.keys(data.data)[0]]);
+                                }
+                            });
+                        }).catch((err) => {
+                            reject(err);
+                        });
+                    });
+                } else if (typeof account === 'number') {
+                    return new Promise((resolve, reject) => {
+                        this._request('account/info', {
+                            account_id: account
+                        }, (err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data.data[Object.keys(data.data)[0]]);
+                            }
+                        });
+                    });
+                }
+            },
+            tank_stats_list: (accountName) => {
                 return new Promise((resolve, reject) => {
                     this.#getAccountID(accountName).then((data) => {
                         if (data.meta.count === 0) {
                             reject('Account not found');
                             return;
                         }
-                        this._request('account/info', {
+                        this._request('tanks/stats', {
+                            account_id: data.data[0].account_id
+                        }, (err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data.data);
+                            }
+                        });
+                    }).catch((err) => {
+                        reject(err);
+                    });
+                });
+            },
+            achievements: (accountName) => {
+                return new Promise((resolve, reject) => {
+                    this.#getAccountID(accountName).then((data) => {
+                        if (data.meta.count === 0) {
+                            reject('Account not found');
+                            return;
+                        }
+                        this._request('account/achievements', {
                             account_id: data.data[0].account_id
                         }, (err, data) => {
                             if (err) {
@@ -92,19 +138,6 @@ class WotApi {
                         });
                     }).catch((err) => {
                         reject(err);
-                    });
-                });
-            },
-            byID: (accountID) => {
-                return new Promise((resolve, reject) => {
-                    this._request('account/info', {
-                        account_id: accountID
-                    }, (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data.data[Object.keys(data.data)[0]]);
-                        }
                     });
                 });
             }
@@ -150,28 +183,43 @@ class WotApi {
         };
     }
 
-    getAccountStat(accountName, stats) {
-        return new Promise((resolve, reject) => {
-            this.#getAccountID(accountName).then((data) => {
-                if (data.meta.count === 0) {
-                    reject('Account not found');
-                    return;
-                }
-
-                this._request('account/info', {
-                    account_id: data.data[0].account_id
-                }, (err, data) => {
-                    if (err) {
+    get tank_stats_list() {
+        return {
+            byName: (accountName) => {
+                return new Promise((resolve, reject) => {
+                    this.#getAccountID(accountName).then((data) => {
+                        if (data.meta.count === 0) {
+                            reject('Account not found');
+                            return;
+                        }
+                        this._request('tanks/stats', {
+                            account_id: data.data[0].account_id
+                        }, (err, data) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data.data);
+                            }
+                        });
+                    }).catch((err) => {
                         reject(err);
-                    } else {
-
-                        resolve(data.data[Object.keys(data.data)[0]]);
-                    }
+                    });
                 });
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+            },
+            byID: (accountID) => {
+                return new Promise((resolve, reject) => {
+                    this._request('tanks/stats', {
+                        account_id: accountID
+                    }, (err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data.data[Object.keys(data.data)[0]]);
+                        }
+                    });
+                });
+            }
+        }
     }
 
     _request(method, params, callback) {
