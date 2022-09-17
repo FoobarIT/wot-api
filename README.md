@@ -29,19 +29,40 @@ wotClient.account.stats(123456789 /*'KILLER_23'*/)
 ```
 
 ## DOCS
-Namespace `account`:
+## Namespace `account`:
 | Namespace | Method | Description |
 | --- | --- | --- |
 | `stats` | `account.stat(...)` | Get data of the player. |
 | `tank_stats_list` | `account.tank_stats_list(...)` | Get tanks list related to a account. |
 | `achievements` | `account.achievements(...)` | Get achievements related to a account. |
 
-Parameters accepted for `account.stat(...)`:
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `account_id` ex:`43202934` | `number` | The account id. |
-| `account_name` ex:`'KILLER_23'`| `string` | The account name. |
-___
+**Account Stats**
+
+
+```js
+let data = await wotClient.account.stats(account_id: number)
+// Or 
+let data = await wotClient.account.stats(account_name: string)
+
+
+```
+
+**Account Tank Stats List**
+
+```js
+let data = await wotClient.account.tank_stats_list(account_id: number)
+// Or
+let data = await wotClient.account.tank_stats_list(account_name: string)
+```
+
+**Account Achievements**
+
+```js
+let data = await wotClient.account.achievements(account_id: number)
+// Or
+let data = await wotClient.account.achievements(account_name: string)
+```
+
 
 
 

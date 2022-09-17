@@ -15,15 +15,7 @@ const https = require('https');
 const querystring = require('querystring');
 
 class WotApi {
-    /**
-     * @constructor
-     * @param {string} applicationId - Your application ID.
-     * @param {string} [region=na] - The region to use for the API.
-     * @param {string} [apiPath=/wot] - The path to the API.
-     * @param {boolean} [debug=false] - Whether or not to log debug messages.
-     * @public
-     * @returns {WotApi}
-     */
+    
     constructor(options) {
         this.applicationId = options.applicationId;
         this.region = options.region;
@@ -67,10 +59,8 @@ class WotApi {
                 if (typeof account === 'string') {
                     return new Promise((resolve, reject) => {
                         this.#getAccountID(account).then((data) => {
-                            console.log(data)
                             if (data.meta.count === 0) {
-                                reject('Account not found');
-                                return;
+                                resolve({data: data, error: 'No account found'});
                             }
                             this._request('account/info', {
                                 account_id: data.data[0].account_id
@@ -103,8 +93,7 @@ class WotApi {
                 return new Promise((resolve, reject) => {
                     this.#getAccountID(accountName).then((data) => {
                         if (data.meta.count === 0) {
-                            reject('Account not found');
-                            return;
+                            throw new Error('[@wot-api]This account does not exist on this realm/server.');
                         }
                         this._request('tanks/stats', {
                             account_id: data.data[0].account_id
@@ -143,84 +132,6 @@ class WotApi {
             }
         };
     };
-
-    get clan() {
-        return {
-            byName: (clanName) => {
-                return new Promise((resolve, reject) => {
-                    this.#getClanID(clanName).then((data) => {
-                        if (data.meta.count === 0) {
-                            reject('Clan not found');
-                            return;
-                        }
-                        this._request('clans/info', {
-                            clan_id: data.data[0].clan_id
-                        }, (err, data) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(data.data[Object.keys(data.data)[0]]);
-                            }
-                        });
-                    }).catch((err) => {
-                        reject(err);
-                    });
-                });
-            },
-            byID: (clanID) => {
-                return new Promise((resolve, reject) => {
-                    this._request('clans/info', {
-                        clan_id: clanID
-                    }, (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data);
-                        }
-                    });
-                });
-            }
-        };
-    }
-
-    get tank_stats_list() {
-        return {
-            byName: (accountName) => {
-                return new Promise((resolve, reject) => {
-                    this.#getAccountID(accountName).then((data) => {
-                        if (data.meta.count === 0) {
-                            reject('Account not found');
-                            return;
-                        }
-                        this._request('tanks/stats', {
-                            account_id: data.data[0].account_id
-                        }, (err, data) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(data.data);
-                            }
-                        });
-                    }).catch((err) => {
-                        reject(err);
-                    });
-                });
-            },
-            byID: (accountID) => {
-                return new Promise((resolve, reject) => {
-                    this._request('tanks/stats', {
-                        account_id: accountID
-                    }, (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data.data[Object.keys(data.data)[0]]);
-                        }
-                    });
-                });
-            }
-        }
-    }
 
     _request(method, params, callback) {
         params = params || {};
